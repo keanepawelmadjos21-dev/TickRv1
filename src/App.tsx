@@ -47,6 +47,7 @@ import { AbsentManager } from './components/AbsentManager';
 import { MonthlyReportView } from './components/MonthlyReportView';
 import { CloudSyncView } from './components/CloudSyncView';
 import { HalfMonthPayrollView } from './components/HalfMonthPayrollView';
+import { SplashScreen } from './components/SplashScreen';
 
 // Widgets
 import { PunchClockWidget } from './components/widgets/PunchClockWidget';
@@ -59,7 +60,7 @@ import { MonthlyProgressWidget } from './components/widgets/MonthlyProgressWidge
 
 export default function App() {
   // Navigation
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'payroll' | 'logs' | 'attendance' | 'reports' | 'cloud'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'payroll' | 'logs' | 'attendance' | 'reports' | 'cloud' | 'settings'>('dashboard');
 
   // Theme
   const [theme, setThemeState] = useState<'light' | 'dark'>(getTheme());
@@ -84,6 +85,7 @@ export default function App() {
   const [modalIsAbsentMode, setModalIsAbsentMode] = useState<boolean>(false);
   const [isCustomizerOpen, setIsCustomizerOpen] = useState<boolean>(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
+  const [showSplash, setShowSplash] = useState<boolean>(true);
 
   // Initialize theme on HTML root
   useEffect(() => {
@@ -371,6 +373,7 @@ export default function App() {
         lastSyncTime={lastSyncTime}
         onOpenAccountModal={() => setIsProfileModalOpen(true)}
         onOpenWidgetModal={() => setIsCustomizerOpen(true)}
+        onReplaySplash={() => setShowSplash(true)}
       />
 
       {/* Main Container */}
@@ -504,8 +507,8 @@ export default function App() {
           />
         )}
 
-        {/* Tab 5: Account Synchronization & Cloud Backups */}
-        {activeTab === 'cloud' && (
+        {/* Tab 5: Settings & Profile (Account Synchronization, Widgets & Cloud Backups) */}
+        {(activeTab === 'settings' || activeTab === 'cloud') && (
           <CloudSyncView
             isOnline={isOnline}
             simulatedOffline={simulatedOffline}
@@ -518,6 +521,12 @@ export default function App() {
             onUpdateAccount={handleSaveAccount}
             onReloadEntries={refreshEntriesFromStorage}
             onOpenProfileModal={() => setIsProfileModalOpen(true)}
+            widgets={widgets}
+            onSaveWidgets={handleSaveWidgets}
+            onOpenWidgetModal={() => setIsCustomizerOpen(true)}
+            theme={theme}
+            onSetTheme={(t) => setThemeState(t)}
+            onReplaySplash={() => setShowSplash(true)}
           />
         )}
       </main>
@@ -550,7 +559,20 @@ export default function App() {
         onClose={() => setIsProfileModalOpen(false)}
         account={account}
         onSave={handleSaveAccount}
+        theme={theme}
+        onSetTheme={(t) => setThemeState(t)}
+        onOpenWidgetModal={() => setIsCustomizerOpen(true)}
+        isOnline={isOnline}
+        isSyncing={isSyncing}
+        pendingCount={pendingCount}
+        onManualSync={performSync}
+        lastSyncTime={lastSyncTime}
       />
+
+      {/* App Splash Screen with Tickr Logo */}
+      {showSplash && (
+        <SplashScreen onFinish={() => setShowSplash(false)} />
+      )}
     </div>
   );
 }

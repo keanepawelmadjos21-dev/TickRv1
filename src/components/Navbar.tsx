@@ -14,6 +14,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { UserAccount } from '../types';
+import { TickrLogo } from './TickrLogo';
 
 interface NavbarProps {
   currentTab?: string;
@@ -35,6 +36,7 @@ interface NavbarProps {
   onManualSync?: () => void;
   pendingCount?: number;
   lastSyncTime?: string | null;
+  onReplaySplash?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = (props) => {
@@ -43,7 +45,6 @@ export const Navbar: React.FC<NavbarProps> = (props) => {
   const account = props.account || props.userAccount;
   const displayName = account?.name || 'Alex Rivera';
   const displayEmail = account?.email || 'alex.rivera@enterprise.io';
-  const hourlyRate = account?.defaultHourlyRate ?? 85;
   const onOpenAccountModal = props.onOpenAccountModal || (() => setCurrentTab('cloud'));
   const onOpenWidgetModal = props.onOpenWidgetModal || (() => {});
   const darkMode = props.darkMode !== undefined ? props.darkMode : props.theme === 'dark';
@@ -86,7 +87,7 @@ export const Navbar: React.FC<NavbarProps> = (props) => {
     { id: 'logs', label: 'Time Logs' },
     { id: 'attendance', label: 'Attendance & Absences' },
     { id: 'reports', label: 'Monthly Reports & Export' },
-    { id: 'cloud', label: 'Cloud & Backups' }
+    { id: 'settings', label: 'Settings' }
   ];
 
   return (
@@ -96,9 +97,19 @@ export const Navbar: React.FC<NavbarProps> = (props) => {
           
           {/* Brand & Live Clock */}
           <div className="flex items-center gap-3 min-w-0">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-sky-600 text-white shadow-sm flex-shrink-0">
-              <Clock className="w-5 h-5" />
-            </div>
+            <button
+              onClick={() => {
+                if (props.onReplaySplash) {
+                  props.onReplaySplash();
+                } else {
+                  setCurrentTab('dashboard');
+                }
+              }}
+              title="Click to preview splash screen"
+              className="flex items-center justify-center w-10 h-10 rounded-xl flex-shrink-0 cursor-pointer transition-transform hover:scale-105 active:scale-95"
+            >
+              <TickrLogo className="w-10 h-10" />
+            </button>
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-base sm:text-lg text-slate-900 dark:text-white tracking-tight truncate">
@@ -142,58 +153,31 @@ export const Navbar: React.FC<NavbarProps> = (props) => {
               )}
             </button>
 
-            {/* Cloud Sync Status & Manual Sync Button */}
+            {/* Dark & Light Theme Scheme Switcher */}
             <button
-              onClick={onManualSync}
-              disabled={isSyncing || !isOnline}
-              id="btn-manual-sync"
-              title={
-                !isOnline
-                  ? 'Offline: Changes queued locally'
-                  : pendingCount > 0
-                  ? `${pendingCount} changes waiting to sync`
-                  : 'Cloud synchronized'
-              }
-              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                pendingCount > 0
-                  ? 'bg-sky-50 dark:bg-sky-950/40 border-sky-300 dark:border-sky-800 text-sky-700 dark:text-sky-300'
-                  : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
-              }`}
-            >
-              {isSyncing ? (
-                <RefreshCw className="w-3.5 h-3.5 text-sky-500 animate-spin" />
-              ) : isOnline ? (
-                <Cloud className="w-3.5 h-3.5 text-sky-500" />
-              ) : (
-                <CloudOff className="w-3.5 h-3.5 text-amber-500" />
-              )}
-              
-              <span className="hidden md:inline">
-                {isSyncing ? 'Syncing...' : pendingCount > 0 ? `Sync (${pendingCount})` : 'Cloud Synced'}
-              </span>
-            </button>
-
-            {/* Customize Dashboard Widgets Button */}
-            {currentTab === 'dashboard' && (
-              <button
-                onClick={onOpenWidgetModal}
-                id="btn-customize-widgets"
-                title="Customize dashboard widgets layout and visibility"
-                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
-              >
-                <SlidersHorizontal className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Customize Widgets</span>
-              </button>
-            )}
-
-            {/* Dark Mode Toggle */}
-            <button
-              onClick={() => setDarkMode(!darkMode)}
+              onClick={() => {
+                if (props.onToggleTheme) {
+                  props.onToggleTheme();
+                } else if (props.setDarkMode) {
+                  props.setDarkMode(!darkMode);
+                }
+              }}
               id="btn-toggle-dark-mode"
-              title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              className="p-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent hover:border-slate-200 dark:hover:border-slate-700 transition"
+              aria-label={darkMode ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+              title={darkMode ? 'Currently in Dark Scheme. Click to switch to Light Scheme.' : 'Currently in Light Scheme. Click to switch to Dark Scheme.'}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 h-[36px] rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100/90 dark:bg-slate-800/90 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 shadow-2xs transition-all cursor-pointer select-none"
             >
-              {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
+              {darkMode ? (
+                <>
+                  <Sun className="w-4 h-4 text-amber-400" />
+                  <span className="text-xs font-semibold text-slate-200 hidden md:inline">Light</span>
+                </>
+              ) : (
+                <>
+                  <Moon className="w-4 h-4 text-indigo-600" />
+                  <span className="text-xs font-semibold text-slate-700 hidden md:inline">Dark</span>
+                </>
+              )}
             </button>
 
             {/* Account Profile Avatar / Button */}
@@ -232,12 +216,9 @@ export const Navbar: React.FC<NavbarProps> = (props) => {
                   <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 ring-1.5 ring-white dark:ring-slate-900"></span>
                 </span>
               </div>
-              <div className="hidden lg:block text-left">
-                <p className="text-xs font-semibold text-slate-900 dark:text-white leading-none truncate max-w-[105px] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+              <div className="flex items-center text-left min-w-0 pr-1">
+                <p className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white leading-tight truncate max-w-[85px] xs:max-w-[120px] sm:max-w-[160px] md:max-w-[200px] group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                   {displayName}
-                </p>
-                <p className="text-[10px] text-slate-600 dark:text-slate-400 leading-tight mt-0.5 font-mono">
-                  ₱{hourlyRate}/hr
                 </p>
               </div>
             </button>
@@ -247,7 +228,7 @@ export const Navbar: React.FC<NavbarProps> = (props) => {
         {/* Navigation Tabs Bar */}
         <nav className="flex items-center space-x-1 sm:space-x-2 py-2 overflow-x-auto no-scrollbar border-t border-slate-100 dark:border-slate-800/80">
           {navTabs.map(tab => {
-            const active = currentTab === tab.id;
+            const active = currentTab === tab.id || (tab.id === 'settings' && currentTab === 'cloud');
             return (
               <button
                 key={tab.id}

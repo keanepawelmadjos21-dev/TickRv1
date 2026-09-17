@@ -14,7 +14,15 @@ import {
   Globe, 
   Check, 
   RotateCcw,
-  AlertCircle
+  AlertCircle,
+  Sun,
+  Moon,
+  Cloud,
+  CloudOff,
+  RefreshCw,
+  SlidersHorizontal,
+  Wifi,
+  WifiOff
 } from 'lucide-react';
 import { UserAccount } from '../types';
 
@@ -23,6 +31,14 @@ interface UserProfileModalProps {
   onClose: () => void;
   account: UserAccount;
   onSave: (updatedAccount: UserAccount) => void;
+  theme?: 'light' | 'dark';
+  onSetTheme?: (theme: 'light' | 'dark') => void;
+  onOpenWidgetModal?: () => void;
+  isOnline?: boolean;
+  isSyncing?: boolean;
+  pendingCount?: number;
+  onManualSync?: () => void;
+  lastSyncTime?: string | null;
 }
 
 // Preset avatars curated for professional yet energetic profiles
@@ -86,7 +102,15 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   isOpen,
   onClose,
   account,
-  onSave
+  onSave,
+  theme = 'light',
+  onSetTheme,
+  onOpenWidgetModal,
+  isOnline = true,
+  isSyncing = false,
+  pendingCount = 0,
+  onManualSync,
+  lastSyncTime
 }) => {
   const [formData, setFormData] = useState<UserAccount>({ ...account });
   const [avatarPreview, setAvatarPreview] = useState<string | undefined>(account.avatarUrl);
@@ -340,7 +364,10 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 </div>
 
                 <div className="text-center">
-                  <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full bg-indigo-100/70 dark:bg-indigo-950/60">
+                  <p className="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[120px]">
+                    {formData.name || 'Employee'}
+                  </p>
+                  <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full bg-indigo-100/70 dark:bg-indigo-950/60 mt-0.5">
                     <Sparkles className="w-3 h-3 animate-spin-slow" />
                     Animated Thumbnail
                   </span>
@@ -698,6 +725,148 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                 </span>
               </div>
             </div>
+
+            {/* Cloud Synchronization Section */}
+            <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+              <label className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mb-2">
+                <Cloud className="w-3.5 h-3.5 text-sky-500" />
+                Cloud Synchronization & Storage
+              </label>
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-3 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-700/70">
+                <div className="flex items-center gap-2.5 w-full sm:w-auto">
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                    !isOnline 
+                      ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-600'
+                      : isSyncing
+                      ? 'bg-sky-100 dark:bg-sky-950/60 text-sky-600'
+                      : 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600'
+                  }`}>
+                    {isSyncing ? (
+                      <RefreshCw className="w-4 h-4 animate-spin text-sky-500" />
+                    ) : isOnline ? (
+                      <Cloud className="w-4 h-4 text-emerald-500" />
+                    ) : (
+                      <CloudOff className="w-4 h-4 text-amber-500" />
+                    )}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-slate-900 dark:text-white">
+                        {isSyncing 
+                          ? 'Syncing in progress...' 
+                          : !isOnline 
+                          ? 'Offline Mode' 
+                          : pendingCount > 0 
+                          ? `${pendingCount} changes waiting to sync` 
+                          : 'Cloud Synced'}
+                      </span>
+                      <span className={`inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[10px] font-semibold ${
+                        isOnline 
+                          ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300' 
+                          : 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300'
+                      }`}>
+                        {isOnline ? <Wifi className="w-2.5 h-2.5" /> : <WifiOff className="w-2.5 h-2.5" />}
+                        {isOnline ? 'Online' : 'Offline'}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                      {lastSyncTime ? `Last synced: ${new Date(lastSyncTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}` : 'Ready to synchronize'}
+                    </p>
+                  </div>
+                </div>
+
+                {onManualSync && (
+                  <button
+                    type="button"
+                    onClick={onManualSync}
+                    disabled={isSyncing || !isOnline}
+                    id="btn-profile-sync-now"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white shadow-2xs transition cursor-pointer"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+                    <span>{isSyncing ? 'Syncing...' : 'Sync Cloud Now'}</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Customize Dashboard Widgets Section */}
+            {onOpenWidgetModal && (
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                <label className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mb-2">
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-indigo-500" />
+                  Dashboard Widgets
+                </label>
+                <div className="flex items-center justify-between gap-3 p-3 rounded-xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-700/70">
+                  <div>
+                    <p className="text-xs font-semibold text-slate-900 dark:text-white">
+                      Widget Layout & Visibility
+                    </p>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                      Customize cards on your dashboard (Punch clock, Weekly hours, Overtime)
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={onOpenWidgetModal}
+                    id="btn-profile-customize-widgets"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-600 shadow-2xs transition cursor-pointer flex-shrink-0"
+                  >
+                    <SlidersHorizontal className="w-3.5 h-3.5 text-indigo-500" />
+                    <span>Customize Widgets</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Theme Appearance Scheme Setting */}
+            {onSetTheme && (
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+                <label className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mb-2">
+                  <Sun className="w-3.5 h-3.5 text-indigo-500" />
+                  Appearance Theme Scheme
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => onSetTheme('light')}
+                    id="btn-profile-theme-light"
+                    className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold transition cursor-pointer ${
+                      theme === 'light'
+                        ? 'border-indigo-600 bg-indigo-50/70 text-indigo-900 shadow-2xs ring-1 ring-indigo-500'
+                        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center text-amber-600 flex-shrink-0">
+                      <Sun className="w-4 h-4" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-semibold text-slate-900 dark:text-white">Light Scheme</p>
+                      <p className="text-[10px] font-normal text-slate-500 dark:text-slate-400">Clean bright canvas</p>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => onSetTheme('dark')}
+                    id="btn-profile-theme-dark"
+                    className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs font-semibold transition cursor-pointer ${
+                      theme === 'dark'
+                        ? 'border-indigo-500 bg-indigo-950/60 text-white shadow-2xs ring-1 ring-indigo-500'
+                        : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    <div className="w-7 h-7 rounded-lg bg-indigo-950 flex items-center justify-center text-indigo-400 flex-shrink-0">
+                      <Moon className="w-4 h-4" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-semibold text-slate-900 dark:text-white">Dark Scheme</p>
+                      <p className="text-[10px] font-normal text-slate-500 dark:text-slate-400">Night mode contrast</p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Modal Footer Controls */}

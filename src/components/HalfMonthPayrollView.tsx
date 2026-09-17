@@ -228,7 +228,7 @@ export const HalfMonthPayrollView: React.FC<HalfMonthPayrollViewProps> = ({
             </button>
 
             <button
-              onClick={() => exportPayrollPDF(summary, account)}
+              onClick={() => exportPayrollPDF(summary, account, entries, config, holidays, year, month)}
               id="btn-export-payroll-pdf"
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition"
             >

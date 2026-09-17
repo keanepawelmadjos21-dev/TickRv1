@@ -1,0 +1,51 @@
+{
+  "name": "Daily Time Keeper Splash Screen Animation",
+  "version": "2.4",
+  "component": "SplashScreen.tsx",
+  "logoComponent": "TickrLogo.tsx",
+  "assetPath": "/branding/tickr-logo.svg",
+  "imageAssetPath": "/branding/tickr-logo.jpg",
+  "animationSpec": {
+    "engine": "motion/react",
+    "totalDurationMs": 1800,
+    "stages": [
+      {
+        "timeMs": 0,
+        "progress": 10,
+        "label": "Initializing workspace...",
+        "effect": "Motion scale from 0.8 to 1.0, y-axis glide, radial background glow"
+      },
+      {
+        "timeMs": 450,
+        "progress": 45,
+        "label": "Loading local time logs & cache...",
+        "effect": "Indigo gradient progress fill, pulsing outer glow halo"
+      },
+      {
+        "timeMs": 1050,
+        "progress": 85,
+        "label": "Connecting cloud synchronization...",
+        "effect": "Sparkle badge counter-rotation, cloud connection handshake"
+      },
+      {
+        "timeMs": 1500,
+        "progress": 100,
+        "label": "Ready",
+        "effect": "Emerald checkmark badge transition, full progress bar completion"
+      },
+      {
+        "timeMs": 1800,
+        "progress": 100,
+        "label": "App Mounted",
+        "effect": "Smooth scale 1.02, opacity fade out exit transition"
+      }
+    ],
+    "palette": {
+      "background": "#020617",
+      "radialGradient": "from indigo-950/60 via slate-950 to black",
+      "glowOrbs": ["#4F46E5", "#7C3AED", "#38BDF8"],
+      "primaryAccent": "#6366F1",
+      "successAccent": "#10B981"
+    }
+  }
+}
