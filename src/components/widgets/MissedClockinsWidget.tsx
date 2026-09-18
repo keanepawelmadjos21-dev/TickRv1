@@ -69,7 +69,9 @@ export const MissedClockinsWidget: React.FC<MissedClockinsWidgetProps> = ({
             </div>
           </div>
 
-          <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${
+          <span 
+            style={{ width: '82.9531px' }}
+            className={`inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${
             missedDays.length > 0 
               ? 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300' 
               : 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'

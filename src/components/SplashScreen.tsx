@@ -13,7 +13,7 @@ interface SplashScreenProps {
 export const SplashScreen: React.FC<SplashScreenProps> = ({
   onFinish,
   minDurationMs = 1800,
-  appName = 'Daily Time Keeper',
+  appName = 'TICKR',
   appVersion = 'v2.4'
 }) => {
   const [isVisible, setIsVisible] = useState<boolean>(true);
@@ -115,7 +115,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({
               className="space-y-1.5 mb-6"
             >
               <div className="flex items-center justify-center gap-2">
-                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+                <h1 className="font-brand-rounded font-extrabold text-2xl sm:text-3xl tracking-wide text-white">
                   {appName}
                 </h1>
                 <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">

@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 interface TickrLogoProps {
   className?: string;
   size?: number | string;
-  variant?: 'image' | 'vector';
+  variant?: 'image' | 'vector' | 'svg';
   alt?: string;
 }
 
@@ -13,9 +13,16 @@ export const TickrLogo: React.FC<TickrLogoProps> = ({
   variant = 'image',
   alt = 'Tickr Logo'
 }) => {
+  const [loadFailed, setLoadFailed] = useState<boolean>(false);
+  const [fallbackFailed, setFallbackFailed] = useState<boolean>(false);
   const inlineSize = size ? { width: size, height: size } : undefined;
 
-  if (variant === 'image') {
+  // Main branding logo from /public/branding/tickr-logo.jpg (fallback to /branding/tickr-logo.svg)
+  const isSvg = variant === 'svg';
+  const primarySrc = isSvg ? '/branding/tickr-logo.svg' : '/branding/tickr-logo.jpg';
+  const fallbackSrc = isSvg ? '/branding/tickr-logo.jpg' : '/branding/tickr-logo.svg';
+
+  if (!loadFailed) {
     return (
       <div 
         id="tickr-logo-container"
@@ -23,10 +30,36 @@ export const TickrLogo: React.FC<TickrLogoProps> = ({
         className={`relative flex items-center justify-center overflow-hidden rounded-xl shadow-md transition-transform duration-200 hover:scale-105 select-none flex-shrink-0 ${className}`}
       >
         <img
-          src="/tickr-logo.jpg"
+          src={primarySrc}
           alt={alt}
           referrerPolicy="no-referrer"
-          className="w-full h-full object-cover rounded-xl"
+          style={inlineSize}
+          className={`w-full h-full rounded-xl ${isSvg ? 'object-contain' : 'object-cover'}`}
+          onError={() => {
+            setLoadFailed(true);
+          }}
+        />
+      </div>
+    );
+  }
+
+  // Fallback to alternate asset from /public/branding if primary failed
+  if (!fallbackFailed) {
+    return (
+      <div 
+        id="tickr-logo-container-fallback"
+        style={inlineSize}
+        className={`relative flex items-center justify-center overflow-hidden rounded-xl shadow-md transition-transform duration-200 hover:scale-105 select-none flex-shrink-0 ${className}`}
+      >
+        <img
+          src={fallbackSrc}
+          alt={alt}
+          referrerPolicy="no-referrer"
+          style={inlineSize}
+          className="w-full h-full rounded-xl object-cover"
+          onError={() => {
+            setFallbackFailed(true);
+          }}
         />
       </div>
     );

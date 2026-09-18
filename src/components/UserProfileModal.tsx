@@ -660,10 +660,15 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {/* Default Hourly Rate in PHP */}
               <div>
-                <label className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mb-1">
-                  <span className="font-bold text-emerald-600 dark:text-emerald-400">₱</span>
-                  Default Hourly Rate (PHP) *
-                </label>
+                <div className="flex items-center justify-between gap-2 mb-1 min-w-0">
+                  <label className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5 truncate">
+                    <span className="font-bold text-emerald-600 dark:text-emerald-400 flex-shrink-0">₱</span>
+                    <span className="truncate">Default Hourly Rate *</span>
+                  </label>
+                  <span className="text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400 flex-shrink-0">
+                    ₱{formData.defaultHourlyRate}/hr
+                  </span>
+                </div>
                 <div className="relative">
                   <span className="absolute left-3 top-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 select-none">
                     ₱
@@ -678,17 +683,36 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                     className="w-full pl-7 pr-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-mono font-semibold focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition"
                   />
                 </div>
-                <span className="text-[10px] text-slate-400 mt-1 block">
-                  Used in payroll computations & time logs
-                </span>
+                <div className="mt-2.5 px-0.5">
+                  <input
+                    type="range"
+                    min="25"
+                    max="500"
+                    step="5"
+                    value={Math.min(500, Math.max(25, formData.defaultHourlyRate || 25))}
+                    onChange={(e) => setFormData({ ...formData, defaultHourlyRate: parseFloat(e.target.value) })}
+                    className="slider-bar w-full"
+                    title={`Rate slider: ₱${formData.defaultHourlyRate}/hr`}
+                  />
+                  <div className="flex justify-between text-[9px] text-slate-400 dark:text-slate-500 font-mono mt-1">
+                    <span>₱25</span>
+                    <span>₱250</span>
+                    <span>₱500</span>
+                  </div>
+                </div>
               </div>
 
               {/* Daily Target Hours */}
               <div>
-                <label className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mb-1">
-                  <Clock className="w-3.5 h-3.5 text-indigo-500" />
-                  Daily Target Hours *
-                </label>
+                <div className="flex items-center justify-between gap-2 mb-1 min-w-0">
+                  <label className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5 truncate">
+                    <Clock className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />
+                    <span className="truncate">Daily Target *</span>
+                  </label>
+                  <span className="text-[10px] font-mono font-bold text-indigo-600 dark:text-indigo-400 flex-shrink-0">
+                    {formData.dailyTargetHours}h / day
+                  </span>
+                </div>
                 <input
                   type="number"
                   min="1"
@@ -699,17 +723,36 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   onChange={(e) => setFormData({ ...formData, dailyTargetHours: parseFloat(e.target.value) || 8 })}
                   className="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition"
                 />
-                <span className="text-[10px] text-slate-400 mt-1 block">
-                  Standard workday workload (e.g. 8h)
-                </span>
+                <div className="mt-2.5 px-0.5">
+                  <input
+                    type="range"
+                    min="1"
+                    max="16"
+                    step="0.5"
+                    value={Math.min(16, Math.max(1, formData.dailyTargetHours || 8))}
+                    onChange={(e) => setFormData({ ...formData, dailyTargetHours: parseFloat(e.target.value) })}
+                    className="slider-bar w-full"
+                    title={`Daily target slider: ${formData.dailyTargetHours} hours`}
+                  />
+                  <div className="flex justify-between text-[9px] text-slate-400 dark:text-slate-500 font-mono mt-1">
+                    <span>1h</span>
+                    <span>8h standard</span>
+                    <span>16h</span>
+                  </div>
+                </div>
               </div>
 
               {/* Weekly Target Hours */}
               <div>
-                <label className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mb-1">
-                  <Clock className="w-3.5 h-3.5 text-indigo-500" />
-                  Weekly Target Hours *
-                </label>
+                <div className="flex items-center justify-between gap-2 mb-1 min-w-0">
+                  <label className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5 truncate">
+                    <Clock className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />
+                    <span className="truncate">Weekly Target *</span>
+                  </label>
+                  <span className="text-[10px] font-mono font-bold text-indigo-600 dark:text-indigo-400 flex-shrink-0">
+                    {formData.weeklyTargetHours}h / week
+                  </span>
+                </div>
                 <input
                   type="number"
                   min="1"
@@ -720,9 +763,23 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
                   onChange={(e) => setFormData({ ...formData, weeklyTargetHours: parseFloat(e.target.value) || 40 })}
                   className="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-mono focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition"
                 />
-                <span className="text-[10px] text-slate-400 mt-1 block">
-                  Full-time week workload (e.g. 40h)
-                </span>
+                <div className="mt-2.5 px-0.5">
+                  <input
+                    type="range"
+                    min="5"
+                    max="60"
+                    step="1"
+                    value={Math.min(60, Math.max(5, formData.weeklyTargetHours || 40))}
+                    onChange={(e) => setFormData({ ...formData, weeklyTargetHours: parseFloat(e.target.value) })}
+                    className="slider-bar w-full"
+                    title={`Weekly target slider: ${formData.weeklyTargetHours} hours`}
+                  />
+                  <div className="flex justify-between text-[9px] text-slate-400 dark:text-slate-500 font-mono mt-1">
+                    <span>5h</span>
+                    <span>40h standard</span>
+                    <span>60h</span>
+                  </div>
+                </div>
               </div>
             </div>
 

@@ -590,7 +590,7 @@ export function generateSimpleTwoColumnPayrollPDF(params: SimplePayrollPDFParams
   doc.setFontSize(6.5);
   doc.setTextColor(...textMuted);
   doc.text(
-    `Daily Time Keeper • Generated on ${new Date().toLocaleDateString()} • Confidential Payroll Statement`,
+    `TICKR • Generated on ${new Date().toLocaleDateString()} • Confidential Payroll Statement`,
     12,
     290
   );

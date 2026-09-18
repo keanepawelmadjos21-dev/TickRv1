@@ -396,44 +396,107 @@ export const CloudSyncView: React.FC<CloudSyncViewProps> = ({
               </div>
 
               <div>
-                <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1">
-                  Default Hourly Rate (₱/hr)
-                </label>
+                <div className="flex items-center justify-between gap-2 mb-1 min-w-0">
+                  <label className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">
+                    Default Hourly Rate
+                  </label>
+                  <span className="text-[10px] font-mono font-bold text-emerald-600 dark:text-emerald-400 flex-shrink-0">
+                    ₱{editRate}/hr
+                  </span>
+                </div>
                 <input
                   type="number"
                   min="0"
                   value={editRate}
                   onChange={(e) => setEditRate(Number(e.target.value))}
-                  className="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-mono"
                 />
+                <div className="mt-2 px-0.5">
+                  <input
+                    type="range"
+                    min="25"
+                    max="500"
+                    step="5"
+                    value={Math.min(500, Math.max(25, editRate || 25))}
+                    onChange={(e) => setEditRate(Number(e.target.value))}
+                    className="slider-bar w-full"
+                    title={`Rate slider: ₱${editRate}/hr`}
+                  />
+                  <div className="flex justify-between text-[9px] text-slate-400 font-mono mt-0.5">
+                    <span>₱25</span>
+                    <span>₱500</span>
+                  </div>
+                </div>
               </div>
 
               <div>
-                <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1">
-                  Daily Workload Target (Hours)
-                </label>
+                <div className="flex items-center justify-between gap-2 mb-1 min-w-0">
+                  <label className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">
+                    Daily Workload Target
+                  </label>
+                  <span className="text-[10px] font-mono font-bold text-indigo-600 dark:text-indigo-400 flex-shrink-0">
+                    {editDailyTarget}h / day
+                  </span>
+                </div>
                 <input
                   type="number"
                   min="1"
                   max="24"
                   value={editDailyTarget}
                   onChange={(e) => setEditDailyTarget(Number(e.target.value))}
-                  className="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-mono"
                 />
+                <div className="mt-2 px-0.5">
+                  <input
+                    type="range"
+                    min="1"
+                    max="16"
+                    step="0.5"
+                    value={Math.min(16, Math.max(1, editDailyTarget || 8))}
+                    onChange={(e) => setEditDailyTarget(Number(e.target.value))}
+                    className="slider-bar w-full"
+                    title={`Daily target slider: ${editDailyTarget}h`}
+                  />
+                  <div className="flex justify-between text-[9px] text-slate-400 font-mono mt-0.5">
+                    <span>1h</span>
+                    <span>16h</span>
+                  </div>
+                </div>
               </div>
 
               <div>
-                <label className="text-xs font-medium text-slate-700 dark:text-slate-300 block mb-1">
-                  Weekly Workload Target (Hours)
-                </label>
+                <div className="flex items-center justify-between gap-2 mb-1 min-w-0">
+                  <label className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate">
+                    Weekly Workload Target
+                  </label>
+                  <span className="text-[10px] font-mono font-bold text-indigo-600 dark:text-indigo-400 flex-shrink-0">
+                    {editWeeklyTarget}h / week
+                  </span>
+                </div>
                 <input
                   type="number"
                   min="1"
                   max="168"
                   value={editWeeklyTarget}
                   onChange={(e) => setEditWeeklyTarget(Number(e.target.value))}
-                  className="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
+                  className="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-mono"
                 />
+                <div className="mt-2 px-0.5">
+                  <input
+                    type="range"
+                    min="5"
+                    max="60"
+                    step="1"
+                    value={Math.min(60, Math.max(5, editWeeklyTarget || 40))}
+                    onChange={(e) => setEditWeeklyTarget(Number(e.target.value))}
+                    className="slider-bar w-full"
+                    title={`Weekly target slider: ${editWeeklyTarget}h`}
+                  />
+                  <div className="flex justify-between text-[9px] text-slate-400 font-mono mt-0.5">
+                    <span>5h</span>
+                    <span>60h</span>
+                  </div>
+                </div>
               </div>
 
               <div className="sm:col-span-3 flex justify-end gap-2 pt-2">

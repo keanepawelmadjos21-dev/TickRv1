@@ -1,6 +1,6 @@
 {
-  "name": "Daily Time Keeper",
-  "description": "Daily time keeping with editable half-month payroll computation (late, absence, regular overtime, Sunday overtime, holidays), cloud backup, customizable dashboard widgets, retroactive logs, and certified payslips.",
+  "name": "TICKR",
+  "description": "TICKR daily time tracking with editable half-month payroll computation (late, absence, regular overtime, Sunday overtime, holidays), cloud backup, customizable dashboard widgets, retroactive logs, and certified payslips.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

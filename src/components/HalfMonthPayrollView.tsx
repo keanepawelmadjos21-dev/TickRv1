@@ -360,9 +360,9 @@ export const HalfMonthPayrollView: React.FC<HalfMonthPayrollViewProps> = ({
               Rate: ₱{summary.hourlyRate}/hr • {summary.totalHoursWorked.toFixed(1)} hrs worked
             </p>
           </div>
-          <div className="mt-4 pt-3 border-t border-indigo-400/30 flex items-center justify-between text-xs text-indigo-100">
-            <span>Gross: ₱{summary.grossPay.toFixed(2)}</span>
-            <span className="text-rose-200">Deductions: -₱{summary.totalDeductions.toFixed(2)}</span>
+          <div className="mt-4 pt-3 border-t border-indigo-400/30 flex flex-wrap items-center justify-between gap-2 text-xs text-indigo-100">
+            <span className="truncate">Gross: ₱{summary.grossPay.toFixed(2)}</span>
+            <span className="text-rose-200 truncate flex-shrink-0">Deductions: -₱{summary.totalDeductions.toFixed(2)}</span>
           </div>
         </div>
 
@@ -370,24 +370,24 @@ export const HalfMonthPayrollView: React.FC<HalfMonthPayrollViewProps> = ({
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1">
-              <span className="text-xs font-semibold uppercase tracking-wider">Overtime & Sunday</span>
-              <Sun className="w-4 h-4 text-amber-500" />
+              <span className="text-xs font-semibold uppercase tracking-wider truncate">Overtime & Sunday</span>
+              <Sun className="w-4 h-4 text-amber-500 flex-shrink-0" />
             </div>
             <div className="text-2xl font-bold text-slate-900 dark:text-white">
               ₱{(summary.regularOvertimePay + summary.sundayPay + summary.sundayOvertimePay).toFixed(2)}
             </div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 space-y-0.5 mt-2">
-              <div className="flex justify-between">
-                <span>Regular OT ({summary.regularOvertimeHours}h @ {config.regularOvertimeMultiplier}x):</span>
-                <span className="font-semibold text-slate-700 dark:text-slate-300">₱{summary.regularOvertimePay.toFixed(2)}</span>
+            <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1 mt-2">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="truncate">Regular OT ({summary.regularOvertimeHours}h @ {config.regularOvertimeMultiplier}x):</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-300 flex-shrink-0">₱{summary.regularOvertimePay.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
-                <span>Sunday Work & OT ({summary.sundayHoursWorked + summary.sundayOvertimeHours}h):</span>
-                <span className="font-semibold text-slate-700 dark:text-slate-300">₱{(summary.sundayPay + summary.sundayOvertimePay).toFixed(2)}</span>
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="truncate">Sunday & OT ({summary.sundayHoursWorked + summary.sundayOvertimeHours}h):</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-300 flex-shrink-0">₱{(summary.sundayPay + summary.sundayOvertimePay).toFixed(2)}</span>
               </div>
             </div>
           </div>
-          <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-700 dark:text-slate-300">
+          <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-700 dark:text-slate-300 truncate">
             Overtime adds directly to base compensation
           </div>
         </div>
@@ -396,24 +396,24 @@ export const HalfMonthPayrollView: React.FC<HalfMonthPayrollViewProps> = ({
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-1">
-              <span className="text-xs font-semibold uppercase tracking-wider">Holiday Compensation</span>
-              <Sparkles className="w-4 h-4 text-indigo-500" />
+              <span className="text-xs font-semibold uppercase tracking-wider truncate">Holiday Pay</span>
+              <Sparkles className="w-4 h-4 text-indigo-500 flex-shrink-0" />
             </div>
             <div className="text-2xl font-bold text-slate-900 dark:text-white">
               ₱{summary.totalHolidayPay.toFixed(2)}
             </div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 space-y-0.5 mt-2">
-              <div className="flex justify-between">
-                <span>Worked Holidays ({summary.holidayHoursWorked}h):</span>
-                <span className="font-semibold text-slate-700 dark:text-slate-300">₱{summary.holidayWorkedPay.toFixed(2)}</span>
+            <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1 mt-2">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="truncate">Worked ({summary.holidayHoursWorked}h):</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-300 flex-shrink-0">₱{summary.holidayWorkedPay.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
-                <span>Unworked Paid Holidays:</span>
-                <span className="font-semibold text-slate-700 dark:text-slate-300">₱{summary.holidayUnworkedPay.toFixed(2)}</span>
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="truncate">Unworked Paid:</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-300 flex-shrink-0">₱{summary.holidayUnworkedPay.toFixed(2)}</span>
               </div>
             </div>
           </div>
-          <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+          <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium truncate">
             Regular (200% worked) & Special (130%)
           </div>
         </div>
@@ -422,24 +422,24 @@ export const HalfMonthPayrollView: React.FC<HalfMonthPayrollViewProps> = ({
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between text-rose-600 dark:text-rose-400 mb-1">
-              <span className="text-xs font-semibold uppercase tracking-wider">Tardiness & Absences</span>
-              <AlertTriangle className="w-4 h-4 text-rose-500" />
+              <span className="text-xs font-semibold uppercase tracking-wider truncate">Tardiness & Absences</span>
+              <AlertTriangle className="w-4 h-4 text-rose-500 flex-shrink-0" />
             </div>
             <div className="text-2xl font-bold text-rose-600 dark:text-rose-400">
               -₱{summary.totalDeductions.toFixed(2)}
             </div>
-            <div className="text-xs text-slate-500 dark:text-slate-400 space-y-0.5 mt-2">
-              <div className="flex justify-between">
-                <span>Late Tardiness ({summary.lateMinutesTotal}m):</span>
-                <span className="font-semibold text-rose-600 dark:text-rose-400">-₱{summary.lateDeductionsTotal.toFixed(2)}</span>
+            <div className="text-xs text-slate-500 dark:text-slate-400 space-y-1 mt-2">
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="truncate">Late ({summary.lateMinutesTotal}m):</span>
+                <span className="font-semibold text-rose-600 dark:text-rose-400 flex-shrink-0">-₱{summary.lateDeductionsTotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
-                <span>Absences ({summary.absentDaysCount} workdays):</span>
-                <span className="font-semibold text-rose-600 dark:text-rose-400">-₱{summary.absenceDeductionsTotal.toFixed(2)}</span>
+              <div className="flex items-baseline justify-between gap-2">
+                <span className="truncate">Absences ({summary.absentDaysCount}d):</span>
+                <span className="font-semibold text-rose-600 dark:text-rose-400 flex-shrink-0">-₱{summary.absenceDeductionsTotal.toFixed(2)}</span>
               </div>
             </div>
           </div>
-          <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-700 dark:text-slate-300">
+          <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-700 dark:text-slate-300 truncate">
             Grace period: {config.gracePeriodMinutes} mins past {config.expectedShiftStart}
           </div>
         </div>
