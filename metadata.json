@@ -1,6 +1,6 @@
 {
   "name": "TICKR",
-  "description": "TICKR daily time tracking with editable half-month payroll computation (late, absence, regular overtime, Sunday overtime, holidays), cloud backup, customizable dashboard widgets, retroactive logs, and certified payslips.",
+  "description": "TICKR daily time tracking with Firebase Firestore cloud persistence and authentication, editable half-month payroll computation (late, absence, regular overtime, Sunday overtime, holidays), cloud backup, customizable dashboard widgets, retroactive logs, and certified payslips.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 
 import { TimeEntry, UserAccount, WidgetConfig, AbsenceReason, WidgetId } from './types';
+import { useFirebase } from './contexts/FirebaseContext';
 import { 
   loadLocalEntries, 
   saveLocalEntries, 

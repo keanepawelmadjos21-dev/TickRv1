@@ -1,0 +1,86 @@
+{
+  "entities": {
+    "user": {
+      "title": "User",
+      "description": "User profile information, settings, and workspace preferences",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "User account ID", "maxLength": 128 },
+        "name": { "type": "string", "description": "Full display name", "maxLength": 100 },
+        "email": { "type": "string", "description": "Account email address", "maxLength": 150 },
+        "role": { "type": "string", "description": "Job title or position", "maxLength": 100 },
+        "department": { "type": "string", "description": "Department name", "maxLength": 100 },
+        "company": { "type": "string", "description": "Company name", "maxLength": 100 },
+        "defaultHourlyRate": { "type": "number", "description": "Default hourly compensation rate" },
+        "currency": { "type": "string", "description": "Currency code", "maxLength": 10 },
+        "currencySymbol": { "type": "string", "description": "Currency symbol", "maxLength": 5 },
+        "weeklyTargetHours": { "type": "number", "description": "Weekly target hours" },
+        "dailyTargetHours": { "type": "number", "description": "Daily standard hours" },
+        "timezone": { "type": "string", "description": "Timezone identifier", "maxLength": 50 },
+        "avatarUrl": { "type": "string", "description": "Profile picture URL", "maxLength": 500 },
+        "createdAt": { "type": "string", "description": "Creation ISO date-time" },
+        "updatedAt": { "type": "string", "description": "Last updated ISO date-time" }
+      },
+      "required": ["id", "name", "email"]
+    },
+    "timeEntry": {
+      "title": "TimeEntry",
+      "description": "Employee attendance, work log, and punch clock record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique entry ID", "maxLength": 128 },
+        "userId": { "type": "string", "description": "Owner user UID", "maxLength": 128 },
+        "date": { "type": "string", "description": "Date YYYY-MM-DD", "maxLength": 10 },
+        "startTime": { "type": "string", "description": "Clock-in time HH:mm", "maxLength": 10 },
+        "endTime": { "type": "string", "description": "Clock-out time HH:mm", "maxLength": 10 },
+        "breakMinutes": { "type": "number", "description": "Break duration in minutes" },
+        "totalMinutes": { "type": "number", "description": "Total work duration in minutes" },
+        "category": { "type": "string", "description": "Work category", "maxLength": 100 },
+        "project": { "type": "string", "description": "Assigned project", "maxLength": 100 },
+        "description": { "type": "string", "description": "Work log summary or notes", "maxLength": 1000 },
+        "tags": { "type": "array", "description": "List of tags" },
+        "billable": { "type": "boolean", "description": "Whether entry is billable" },
+        "hourlyRate": { "type": "number", "description": "Hourly rate" },
+        "isRetroactive": { "type": "boolean", "description": "Whether retroactively logged" },
+        "isAbsent": { "type": "boolean", "description": "Whether marked as absent" },
+        "absenceReason": { "type": "string", "description": "Reason for absence", "maxLength": 50 },
+        "absenceNote": { "type": "string", "description": "Absence note", "maxLength": 500 },
+        "createdAt": { "type": "string", "description": "Creation ISO date-time" },
+        "updatedAt": { "type": "string", "description": "Last updated ISO date-time" },
+        "syncStatus": { "type": "string", "description": "Sync status", "maxLength": 30 }
+      },
+      "required": ["id", "userId", "date"]
+    },
+    "cloudBackup": {
+      "title": "CloudBackupSnapshot",
+      "description": "Historical cloud snapshot and disaster recovery backup",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Backup snapshot ID", "maxLength": 128 },
+        "userId": { "type": "string", "description": "Owner user UID", "maxLength": 128 },
+        "timestamp": { "type": "string", "description": "Backup timestamp ISO", "maxLength": 50 },
+        "accountEmail": { "type": "string", "maxLength": 150 },
+        "accountName": { "type": "string", "maxLength": 100 },
+        "entryCount": { "type": "number" },
+        "totalHours": { "type": "number" },
+        "description": { "type": "string", "maxLength": 500 },
+        "createdAt": { "type": "string", "maxLength": 50 }
+      },
+      "required": ["id", "userId", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "user",
+      "description": "User profile document storing account settings and preferences"
+    },
+    "/users/{userId}/entries/{entryId}": {
+      "schema": "timeEntry",
+      "description": "Time and attendance records belonging to the authenticated user"
+    },
+    "/users/{userId}/backups/{backupId}": {
+      "schema": "cloudBackup",
+      "description": "Disaster recovery backup snapshots belonging to the authenticated user"
+    }
+  }
+}

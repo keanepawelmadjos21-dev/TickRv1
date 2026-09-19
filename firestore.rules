@@ -1,0 +1,114 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default Deny All
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Validation for User profile document
+    function isValidUser(data, userId) {
+      return data.keys().hasAll(['id', 'name', 'email'])
+        && data.id is string && data.id == userId
+        && data.name is string && data.name.size() > 0 && data.name.size() <= 100
+        && data.email is string && data.email.size() > 0 && data.email.size() <= 150
+        && (!('role' in data) || (data.role is string && data.role.size() <= 100))
+        && (!('department' in data) || (data.department is string && data.department.size() <= 100))
+        && (!('company' in data) || (data.company is string && data.company.size() <= 100))
+        && (!('defaultHourlyRate' in data) || (data.defaultHourlyRate is number && data.defaultHourlyRate >= 0))
+        && (!('currency' in data) || (data.currency is string && data.currency.size() <= 10))
+        && (!('currencySymbol' in data) || (data.currencySymbol is string && data.currencySymbol.size() <= 5))
+        && (!('weeklyTargetHours' in data) || (data.weeklyTargetHours is number && data.weeklyTargetHours >= 0))
+        && (!('dailyTargetHours' in data) || (data.dailyTargetHours is number && data.dailyTargetHours >= 0))
+        && (!('timezone' in data) || (data.timezone is string && data.timezone.size() <= 50))
+        && (!('avatarUrl' in data) || (data.avatarUrl is string && data.avatarUrl.size() <= 500));
+    }
+
+    // Validation for TimeEntry document
+    function isValidTimeEntry(data, userId) {
+      return data.keys().hasAll(['id', 'userId', 'date'])
+        && data.id is string && data.id.size() > 0 && data.id.size() <= 128
+        && data.userId is string && data.userId == userId
+        && data.date is string && data.date.size() == 10
+        && (!('startTime' in data) || (data.startTime is string && data.startTime.size() <= 10))
+        && (!('endTime' in data) || (data.endTime == null || (data.endTime is string && data.endTime.size() <= 10)))
+        && (!('breakMinutes' in data) || (data.breakMinutes is number && data.breakMinutes >= 0))
+        && (!('totalMinutes' in data) || (data.totalMinutes is number && data.totalMinutes >= 0))
+        && (!('category' in data) || (data.category is string && data.category.size() <= 100))
+        && (!('project' in data) || (data.project is string && data.project.size() <= 100))
+        && (!('description' in data) || (data.description is string && data.description.size() <= 1000))
+        && (!('tags' in data) || (data.tags is list && data.tags.size() <= 20))
+        && (!('billable' in data) || data.billable is bool)
+        && (!('hourlyRate' in data) || (data.hourlyRate is number && data.hourlyRate >= 0))
+        && (!('isRetroactive' in data) || data.isRetroactive is bool)
+        && (!('isAbsent' in data) || data.isAbsent is bool)
+        && (!('absenceReason' in data) || (data.absenceReason == null || (data.absenceReason is string && data.absenceReason.size() <= 50)))
+        && (!('absenceNote' in data) || (data.absenceNote == null || (data.absenceNote is string && data.absenceNote.size() <= 500)))
+        && (!('syncStatus' in data) || (data.syncStatus is string && data.syncStatus.size() <= 30));
+    }
+
+    // Validation for CloudBackup document
+    function isValidBackup(data, userId) {
+      return data.keys().hasAll(['id', 'userId', 'timestamp'])
+        && data.id is string && data.id.size() > 0 && data.id.size() <= 128
+        && data.userId is string && data.userId == userId
+        && data.timestamp is string && data.timestamp.size() <= 50
+        && (!('accountEmail' in data) || (data.accountEmail is string && data.accountEmail.size() <= 150))
+        && (!('accountName' in data) || (data.accountName is string && data.accountName.size() <= 100))
+        && (!('entryCount' in data) || data.entryCount is number)
+        && (!('totalHours' in data) || data.totalHours is number)
+        && (!('description' in data) || (data.description is string && data.description.size() <= 500));
+    }
+
+    // Connection test document
+    match /test/{docId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    // User Profile Documents
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser(incoming(), userId);
+      allow update: if isOwner(userId) && isValidUser(incoming(), userId) && incoming().id == existing().id;
+      allow delete: if false;
+
+      // User Time & Attendance entries subcollection
+      match /entries/{entryId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidTimeEntry(incoming(), userId);
+        allow update: if isOwner(userId) && isValidTimeEntry(incoming(), userId) && incoming().userId == existing().userId;
+        allow delete: if isOwner(userId);
+      }
+
+      // User Cloud Backups subcollection
+      match /backups/{backupId} {
+        allow get, list: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidBackup(incoming(), userId);
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}
