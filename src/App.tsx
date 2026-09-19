@@ -49,6 +49,7 @@ import { MonthlyReportView } from './components/MonthlyReportView';
 import { CloudSyncView } from './components/CloudSyncView';
 import { HalfMonthPayrollView } from './components/HalfMonthPayrollView';
 import { SplashScreen } from './components/SplashScreen';
+import { WelcomeScreen } from './components/WelcomeScreen';
 
 // Widgets
 import { PunchClockWidget } from './components/widgets/PunchClockWidget';
@@ -60,6 +61,8 @@ import { QuickRetroactiveWidget } from './components/widgets/QuickRetroactiveWid
 import { MonthlyProgressWidget } from './components/widgets/MonthlyProgressWidget';
 
 export default function App() {
+  const { user } = useFirebase();
+
   // Navigation
   const [activeTab, setActiveTab] = useState<'dashboard' | 'payroll' | 'logs' | 'attendance' | 'reports' | 'cloud' | 'settings'>('dashboard');
 
@@ -87,6 +90,7 @@ export default function App() {
   const [isCustomizerOpen, setIsCustomizerOpen] = useState<boolean>(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
   const [showSplash, setShowSplash] = useState<boolean>(true);
+  const [showWelcome, setShowWelcome] = useState<boolean>(false);
 
   // Initialize theme on HTML root
   useEffect(() => {
@@ -150,6 +154,22 @@ export default function App() {
       performSync();
     }
   }, [isOnline]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Synchronize account state when authenticated Firebase user changes
+  useEffect(() => {
+    if (user && user.email && account.email !== user.email) {
+      setAccount(prev => {
+        const updated: UserAccount = {
+          ...prev,
+          email: user.email || prev.email,
+          name: user.displayName || prev.name,
+          avatarUrl: user.photoURL || prev.avatarUrl
+        };
+        saveLocalAccount(updated);
+        return updated;
+      });
+    }
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Toggle Theme
   const handleToggleTheme = () => {
@@ -374,7 +394,10 @@ export default function App() {
         lastSyncTime={lastSyncTime}
         onOpenAccountModal={() => setIsProfileModalOpen(true)}
         onOpenWidgetModal={() => setIsCustomizerOpen(true)}
-        onReplaySplash={() => setShowSplash(true)}
+        onReplaySplash={() => {
+          setShowWelcome(false);
+          setShowSplash(true);
+        }}
       />
 
       {/* Main Container */}
@@ -415,15 +438,6 @@ export default function App() {
               </div>
 
               <div className="flex items-center gap-2">
-                <button
-                  onClick={() => setIsCustomizerOpen(true)}
-                  id="btn-customize-widgets"
-                  className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-2xs transition"
-                >
-                  <SlidersHorizontal className="w-4 h-4 text-indigo-500" />
-                  <span>Customize Widgets</span>
-                </button>
-
                 <button
                   onClick={() => handleOpenRetroactiveModal()}
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium bg-indigo-600 hover:bg-indigo-700 text-white shadow-xs transition"
@@ -527,7 +541,10 @@ export default function App() {
             onOpenWidgetModal={() => setIsCustomizerOpen(true)}
             theme={theme}
             onSetTheme={(t) => setThemeState(t)}
-            onReplaySplash={() => setShowSplash(true)}
+            onReplaySplash={() => {
+              setShowWelcome(false);
+              setShowSplash(true);
+            }}
           />
         )}
       </main>
@@ -572,7 +589,25 @@ export default function App() {
 
       {/* App Splash Screen with Tickr Logo */}
       {showSplash && (
-        <SplashScreen onFinish={() => setShowSplash(false)} />
+        <SplashScreen 
+          onFinish={() => {
+            setShowSplash(false);
+            setShowWelcome(true);
+          }} 
+        />
+      )}
+
+      {/* Welcome Screen: Flash Message "Hello [Name]" for logged in profile */}
+      {showWelcome && !showSplash && (
+        <WelcomeScreen
+          profileName={user?.displayName || account.name || 'Alex Rivera'}
+          avatarUrl={user?.photoURL || account.avatarUrl}
+          role={account.role}
+          department={account.department}
+          company={account.company}
+          email={user?.email || account.email}
+          onFinish={() => setShowWelcome(false)}
+        />
       )}
     </div>
   );

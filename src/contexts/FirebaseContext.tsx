@@ -3,6 +3,9 @@ import { User as FirebaseUser, onAuthStateChanged } from 'firebase/auth';
 import { 
   auth, 
   loginWithGooglePopup, 
+  loginWithEmail as fbLoginWithEmail,
+  registerWithEmail as fbRegisterWithEmail,
+  resetPassword as fbResetPassword,
   logoutFirebase, 
   testFirestoreConnection,
   fetchEntriesFromFirestore,
@@ -22,6 +25,9 @@ interface FirebaseContextType {
   syncStatus: 'synced' | 'syncing' | 'offline' | 'error' | 'unauthenticated';
   lastCloudSync: string | null;
   loginWithGoogle: () => Promise<void>;
+  loginWithEmail: (email: string, password: string) => Promise<FirebaseUser>;
+  registerWithEmail: (email: string, password: string, displayName?: string) => Promise<FirebaseUser>;
+  resetPasswordEmail: (email: string) => Promise<void>;
   logout: () => Promise<void>;
   syncEntriesWithCloud: (localEntries: TimeEntry[], localAccount: UserAccount) => Promise<TimeEntry[]>;
   saveSingleEntryToCloud: (entry: TimeEntry) => Promise<void>;
@@ -88,6 +94,45 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     } catch (err) {
       console.error('Login error:', err);
       setSyncStatus('error');
+      throw err;
+    }
+  }, []);
+
+  const loginWithEmail = useCallback(async (email: string, password: string) => {
+    try {
+      setSyncStatus('syncing');
+      const loggedUser = await fbLoginWithEmail(email, password);
+      setUser(loggedUser);
+      setIsFirebaseConnected(true);
+      setSyncStatus('synced');
+      return loggedUser;
+    } catch (err) {
+      console.error('Email login error:', err);
+      setSyncStatus('error');
+      throw err;
+    }
+  }, []);
+
+  const registerWithEmail = useCallback(async (email: string, password: string, displayName?: string) => {
+    try {
+      setSyncStatus('syncing');
+      const newUser = await fbRegisterWithEmail(email, password, displayName);
+      setUser(newUser);
+      setIsFirebaseConnected(true);
+      setSyncStatus('synced');
+      return newUser;
+    } catch (err) {
+      console.error('Email registration error:', err);
+      setSyncStatus('error');
+      throw err;
+    }
+  }, []);
+
+  const resetPasswordEmail = useCallback(async (email: string) => {
+    try {
+      await fbResetPassword(email);
+    } catch (err) {
+      console.error('Password reset error:', err);
       throw err;
     }
   }, []);
@@ -200,6 +245,9 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         syncStatus,
         lastCloudSync,
         loginWithGoogle,
+        loginWithEmail,
+        registerWithEmail,
+        resetPasswordEmail,
         logout,
         syncEntriesWithCloud,
         saveSingleEntryToCloud,

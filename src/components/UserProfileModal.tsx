@@ -22,9 +22,22 @@ import {
   RefreshCw,
   SlidersHorizontal,
   Wifi,
-  WifiOff
+  WifiOff,
+  Lock,
+  Eye,
+  EyeOff,
+  LogIn,
+  LogOut,
+  UserPlus,
+  ShieldCheck,
+  CheckCircle2,
+  Key,
+  HelpCircle,
+  Send,
+  ExternalLink
 } from 'lucide-react';
 import { UserAccount } from '../types';
+import { useFirebase } from '../contexts/FirebaseContext';
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -120,6 +133,25 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   const [showSavedFeedback, setShowSavedFeedback] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Firebase Auth integration inside Profile Settings
+  const { 
+    user, 
+    loginWithEmail, 
+    registerWithEmail, 
+    resetPasswordEmail, 
+    loginWithGoogle, 
+    logout 
+  } = useFirebase();
+
+  const [authMode, setAuthMode] = useState<'signin' | 'register' | 'forgot'>('signin');
+  const [authEmail, setAuthEmail] = useState<string>(account.email || '');
+  const [authPassword, setAuthPassword] = useState<string>('');
+  const [authConfirmPassword, setAuthConfirmPassword] = useState<string>('');
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [authLoading, setAuthLoading] = useState<boolean>(false);
+  const [authFeedback, setAuthFeedback] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [isAuthExpanded, setIsAuthExpanded] = useState<boolean>(!user);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -127,8 +159,152 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
       setFormData({ ...account });
       setAvatarPreview(account.avatarUrl);
       setErrorMessage(null);
+      setAuthFeedback(null);
+      setAuthPassword('');
+      setAuthConfirmPassword('');
+      setAuthEmail(user?.email || account.email || '');
+      setIsAuthExpanded(!user);
     }
-  }, [isOpen, account]);
+  }, [isOpen, account, user]);
+
+  const formatAuthError = (err: any): string => {
+    const code = err?.code || '';
+    const message = err?.message || '';
+    if (code === 'auth/operation-not-allowed') {
+      return 'Email/Password sign-in is not yet enabled in the Firebase Console. In the Firebase Console, go to Authentication > Sign-in method > Email/Password to enable it, or use Continue with Google.';
+    }
+    if (code === 'auth/invalid-email') {
+      return 'Please enter a valid email address.';
+    }
+    if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+      return 'Invalid email or password. Please verify your credentials or create a new account.';
+    }
+    if (code === 'auth/email-already-in-use') {
+      return 'This email address is already registered. Please switch to the Sign In tab.';
+    }
+    if (code === 'auth/weak-password') {
+      return 'Password is too weak. Please use at least 6 characters.';
+    }
+    if (code === 'auth/popup-closed-by-user') {
+      return 'Sign-in window was closed before completing.';
+    }
+    return message || 'Authentication failed. Please verify your credentials and network connection.';
+  };
+
+  const handleEmailSignIn = async () => {
+    if (!authEmail.trim() || !authPassword) {
+      setAuthFeedback({ type: 'error', text: 'Please enter your email and password.' });
+      return;
+    }
+    setAuthLoading(true);
+    setAuthFeedback(null);
+    try {
+      const loggedUser = await loginWithEmail(authEmail, authPassword);
+      setAuthFeedback({ 
+        type: 'success', 
+        text: `Signed in as ${loggedUser.email || authEmail}! Cloud profile updated.` 
+      });
+      const updated: UserAccount = {
+        ...formData,
+        email: loggedUser.email || authEmail,
+        name: loggedUser.displayName || formData.name
+      };
+      setFormData(updated);
+      onSave(updated);
+      setAuthPassword('');
+      setIsAuthExpanded(false);
+    } catch (err: any) {
+      setAuthFeedback({ type: 'error', text: formatAuthError(err) });
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleEmailRegister = async () => {
+    if (!authEmail.trim() || !authPassword) {
+      setAuthFeedback({ type: 'error', text: 'Please enter both email and password.' });
+      return;
+    }
+    if (authPassword.length < 6) {
+      setAuthFeedback({ type: 'error', text: 'Password must be at least 6 characters long.' });
+      return;
+    }
+    if (authPassword !== authConfirmPassword) {
+      setAuthFeedback({ type: 'error', text: 'Passwords do not match.' });
+      return;
+    }
+    setAuthLoading(true);
+    setAuthFeedback(null);
+    try {
+      const newUser = await registerWithEmail(authEmail, authPassword, formData.name);
+      setAuthFeedback({ 
+        type: 'success', 
+        text: `Account created successfully! Signed in as ${newUser.email || authEmail}.` 
+      });
+      const updated: UserAccount = {
+        ...formData,
+        email: newUser.email || authEmail
+      };
+      setFormData(updated);
+      onSave(updated);
+      setAuthPassword('');
+      setAuthConfirmPassword('');
+      setIsAuthExpanded(false);
+    } catch (err: any) {
+      setAuthFeedback({ type: 'error', text: formatAuthError(err) });
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    if (!authEmail.trim()) {
+      setAuthFeedback({ type: 'error', text: 'Please enter your email address to receive password reset link.' });
+      return;
+    }
+    setAuthLoading(true);
+    setAuthFeedback(null);
+    try {
+      await resetPasswordEmail(authEmail);
+      setAuthFeedback({ 
+        type: 'success', 
+        text: `Password reset link sent to ${authEmail}. Please check your inbox.` 
+      });
+      setAuthMode('signin');
+    } catch (err: any) {
+      setAuthFeedback({ type: 'error', text: formatAuthError(err) });
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setAuthLoading(true);
+    setAuthFeedback(null);
+    try {
+      await loginWithGoogle();
+      setAuthFeedback({ type: 'success', text: 'Signed in with Google! Cloud sync enabled.' });
+      setIsAuthExpanded(false);
+    } catch (err: any) {
+      setAuthFeedback({ type: 'error', text: formatAuthError(err) });
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    setAuthLoading(true);
+    setAuthFeedback(null);
+    try {
+      await logout();
+      setAuthFeedback({ type: 'success', text: 'Signed out of cloud account.' });
+      setIsAuthExpanded(true);
+    } catch (err: any) {
+      setAuthFeedback({ type: 'error', text: err.message || 'Failed to sign out.' });
+    } finally {
+      setAuthLoading(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -571,15 +747,37 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
               {/* Email Address */}
               <div>
-                <label className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mb-1">
-                  <Mail className="w-3.5 h-3.5 text-indigo-500" />
-                  Work Email Address *
+                <label className="text-xs font-medium text-slate-700 dark:text-slate-300 flex items-center justify-between gap-1.5 mb-1">
+                  <span className="flex items-center gap-1.5">
+                    <Mail className="w-3.5 h-3.5 text-indigo-500" />
+                    Work Email Address *
+                  </span>
+                  {user ? (
+                    <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Account Linked
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (formData.email) setAuthEmail(formData.email);
+                        setIsAuthExpanded(true);
+                      }}
+                      className="text-[10px] text-indigo-600 dark:text-indigo-400 hover:underline font-semibold cursor-pointer"
+                    >
+                      Sign In with this email
+                    </button>
+                  )}
                 </label>
                 <input
                   type="email"
                   required
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) => {
+                    setFormData({ ...formData, email: e.target.value });
+                    if (!user) setAuthEmail(e.target.value);
+                  }}
                   placeholder="e.g. alex.rivera@enterprise.io"
                   className="w-full px-3 py-2 rounded-xl text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition"
                 />
@@ -651,7 +849,366 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             </div>
           </div>
 
-          {/* Compensation & Workload Goals Section */}
+          {/* Account Authentication & Email Sign-In Section */}
+          <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-indigo-500" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  Account Authentication & Cloud Sign-In
+                </h3>
+              </div>
+              {user ? (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                  Authenticated
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                  Offline / Local Account
+                </span>
+              )}
+            </div>
+
+            {/* Auth Feedback / Status Message Banner */}
+            {authFeedback && (
+              <div 
+                id="auth-feedback-banner"
+                className={`p-3 rounded-xl text-xs flex items-start gap-2.5 transition-all ${
+                  authFeedback.type === 'success'
+                    ? 'bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200'
+                    : 'bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200'
+                }`}
+              >
+                {authFeedback.type === 'success' ? (
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
+                ) : (
+                  <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 flex-shrink-0 mt-0.5" />
+                )}
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-xs leading-relaxed">{authFeedback.text}</p>
+                  {authFeedback.text.includes('Firebase Console') && (
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
+                      Tip: You can enable Email/Password provider in the Firebase Console under <strong>Authentication &gt; Sign-in method</strong>, or use Google Sign-In below for instant access.
+                    </p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setAuthFeedback(null)}
+                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
+
+            {/* State A: User IS Authenticated */}
+            {user && (
+              <div className="p-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-3">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-950/80 text-indigo-600 dark:text-indigo-400 flex items-center justify-center flex-shrink-0 font-bold text-sm">
+                      {user.photoURL ? (
+                        <img 
+                          src={user.photoURL} 
+                          alt={user.displayName || 'User'} 
+                          className="w-full h-full object-cover rounded-xl"
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        (user.email || 'U').charAt(0).toUpperCase()
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                          {user.email || user.displayName || 'Signed In User'}
+                        </p>
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-semibold bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300">
+                          {user.providerData[0]?.providerId === 'password' ? 'Email Account' : user.providerData[0]?.providerId === 'google.com' ? 'Google Account' : 'Cloud Auth'}
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+                        UID: {user.uid.slice(0, 16)}... • Cloud sync active
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      id="btn-profile-switch-account"
+                      onClick={() => setIsAuthExpanded(!isAuthExpanded)}
+                      className="flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition cursor-pointer"
+                    >
+                      {isAuthExpanded ? 'Hide Login Form' : 'Switch Account'}
+                    </button>
+                    <button
+                      type="button"
+                      id="btn-profile-signout"
+                      onClick={handleSignOut}
+                      disabled={authLoading}
+                      className="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 dark:hover:bg-rose-900/50 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 transition cursor-pointer"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>{authLoading ? 'Signing out...' : 'Sign Out'}</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* State B: Sign In / Register / Reset Card (visible if not logged in or if user clicked Switch Account) */}
+            {(!user || isAuthExpanded) && (
+              <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-700/80 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 p-0.5 rounded-lg bg-slate-200/70 dark:bg-slate-700/60 text-xs font-semibold">
+                    <button
+                      type="button"
+                      id="tab-auth-signin"
+                      onClick={() => { setAuthMode('signin'); setAuthFeedback(null); }}
+                      className={`px-3 py-1 rounded-md transition cursor-pointer ${
+                        authMode === 'signin'
+                          ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs font-bold'
+                          : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+                      }`}
+                    >
+                      Sign In
+                    </button>
+                    <button
+                      type="button"
+                      id="tab-auth-register"
+                      onClick={() => { setAuthMode('register'); setAuthFeedback(null); }}
+                      className={`px-3 py-1 rounded-md transition cursor-pointer ${
+                        authMode === 'register'
+                          ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs font-bold'
+                          : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+                      }`}
+                    >
+                      Create Account
+                    </button>
+                    <button
+                      type="button"
+                      id="tab-auth-forgot"
+                      onClick={() => { setAuthMode('forgot'); setAuthFeedback(null); }}
+                      className={`px-3 py-1 rounded-md transition cursor-pointer ${
+                        authMode === 'forgot'
+                          ? 'bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 shadow-2xs font-bold'
+                          : 'text-slate-600 dark:text-slate-300 hover:text-slate-900'
+                      }`}
+                    >
+                      Reset Password
+                    </button>
+                  </div>
+
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 hidden sm:inline">
+                    {authMode === 'signin' ? 'Sign in with your email account' : authMode === 'register' ? 'Register new email account' : 'Recover password via email'}
+                  </span>
+                </div>
+
+                {/* Form fields */}
+                <div className="space-y-2.5">
+                  {/* Email Input */}
+                  <div>
+                    <label className="text-[11px] font-medium text-slate-700 dark:text-slate-300 flex items-center justify-between mb-1">
+                      <span className="flex items-center gap-1.5">
+                        <Mail className="w-3 h-3 text-indigo-500" />
+                        Account Email Address
+                      </span>
+                      {formData.email && authEmail !== formData.email && (
+                        <button
+                          type="button"
+                          onClick={() => setAuthEmail(formData.email)}
+                          className="text-[10px] text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+                        >
+                          Use "{formData.email}"
+                        </button>
+                      )}
+                    </label>
+                    <div className="relative">
+                      <Mail className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+                      <input
+                        type="email"
+                        id="input-auth-email"
+                        value={authEmail}
+                        onChange={(e) => setAuthEmail(e.target.value)}
+                        placeholder="your.email@company.com"
+                        className="w-full pl-9 pr-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Password Input (only for signin and register) */}
+                  {authMode !== 'forgot' && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <label className="text-[11px] font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                            <Lock className="w-3 h-3 text-indigo-500" />
+                            Password
+                          </label>
+                          {authMode === 'signin' && (
+                            <button
+                              type="button"
+                              onClick={() => { setAuthMode('forgot'); setAuthFeedback(null); }}
+                              className="text-[10px] text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+                            >
+                              Forgot?
+                            </button>
+                          )}
+                        </div>
+                        <div className="relative">
+                          <Lock className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+                          <input
+                            type={showPassword ? 'text' : 'password'}
+                            id="input-auth-password"
+                            value={authPassword}
+                            onChange={(e) => setAuthPassword(e.target.value)}
+                            placeholder="••••••••"
+                            className="w-full pl-9 pr-9 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            tabIndex={-1}
+                            className="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                          >
+                            {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {authMode === 'register' ? (
+                        <div>
+                          <label className="text-[11px] font-medium text-slate-700 dark:text-slate-300 flex items-center gap-1.5 mb-1">
+                            <Key className="w-3 h-3 text-indigo-500" />
+                            Confirm Password
+                          </label>
+                          <div className="relative">
+                            <Key className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5" />
+                            <input
+                              type={showPassword ? 'text' : 'password'}
+                              id="input-auth-confirm-password"
+                              value={authConfirmPassword}
+                              onChange={(e) => setAuthConfirmPassword(e.target.value)}
+                              placeholder="••••••••"
+                              className="w-full pl-9 pr-3 py-2 rounded-xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition"
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="hidden sm:flex flex-col justify-end">
+                          <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-tight">
+                            Signing in links your time records, punch logs, and compensation profile safely to cloud storage.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="pt-1 flex flex-col sm:flex-row items-center gap-2">
+                    {authMode === 'signin' && (
+                      <button
+                        type="button"
+                        id="btn-auth-signin"
+                        onClick={handleEmailSignIn}
+                        disabled={authLoading || !authEmail.trim() || !authPassword}
+                        className="w-full sm:flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white shadow-2xs transition cursor-pointer"
+                      >
+                        {authLoading ? (
+                          <>
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            <span>Signing In...</span>
+                          </>
+                        ) : (
+                          <>
+                            <LogIn className="w-3.5 h-3.5" />
+                            <span>Sign In with Email</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+
+                    {authMode === 'register' && (
+                      <button
+                        type="button"
+                        id="btn-auth-register"
+                        onClick={handleEmailRegister}
+                        disabled={authLoading || !authEmail.trim() || !authPassword || !authConfirmPassword}
+                        className="w-full sm:flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white shadow-2xs transition cursor-pointer"
+                      >
+                        {authLoading ? (
+                          <>
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            <span>Creating Account...</span>
+                          </>
+                        ) : (
+                          <>
+                            <UserPlus className="w-3.5 h-3.5" />
+                            <span>Create Email Account</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+
+                    {authMode === 'forgot' && (
+                      <button
+                        type="button"
+                        id="btn-auth-reset-password"
+                        onClick={handlePasswordReset}
+                        disabled={authLoading || !authEmail.trim()}
+                        className="w-full sm:flex-1 inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white shadow-2xs transition cursor-pointer"
+                      >
+                        {authLoading ? (
+                          <>
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            <span>Sending link...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Send className="w-3.5 h-3.5" />
+                            <span>Send Password Reset Email</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+
+                    {/* Google Sign In option */}
+                    <button
+                      type="button"
+                      id="btn-auth-google"
+                      onClick={handleGoogleSignIn}
+                      disabled={authLoading}
+                      className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 shadow-2xs transition cursor-pointer"
+                      title="Sign in with Google account"
+                    >
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24">
+                        <path
+                          fill="#4285F4"
+                          d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"
+                        />
+                        <path
+                          fill="#34A853"
+                          d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"
+                        />
+                        <path
+                          fill="#FBBC05"
+                          d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"
+                        />
+                        <path
+                          fill="#EA4335"
+                          d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"
+                        />
+                      </svg>
+                      <span>Continue with Google</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
           <div className="space-y-4 pt-2 border-t border-slate-100 dark:border-slate-800">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Compensation & Workload Targets

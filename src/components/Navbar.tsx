@@ -190,7 +190,7 @@ export const Navbar: React.FC<NavbarProps> = (props) => {
               onClick={onOpenAccountModal}
               id="btn-account-profile"
               title="Click to edit profile & change user picture"
-              className="group flex items-center gap-1.5 sm:gap-2 pl-1 pr-2 sm:pr-2.5 py-1 h-[44px] sm:h-[48px] rounded-xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-indigo-300 dark:hover:border-indigo-600 transition-all duration-200 shadow-xs cursor-pointer flex-shrink-0 max-w-[140px] sm:max-w-[220px]"
+              className="group flex items-center gap-1.5 sm:gap-2 pl-1 pr-2 sm:pr-2.5 py-1 h-[44px] sm:h-[48px] rounded-xl border-0 bg-transparent hover:bg-slate-100/80 dark:hover:bg-slate-800/80 transition-all duration-200 cursor-pointer flex-shrink-0 max-w-[140px] sm:max-w-[220px]"
             >
               <div 
                 id="navbar-profile-thumbnail-container"

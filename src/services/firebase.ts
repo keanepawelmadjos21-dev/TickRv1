@@ -3,6 +3,10 @@ import {
   getAuth, 
   GoogleAuthProvider, 
   signInWithPopup, 
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
+  updateProfile,
   signOut as fbSignOut, 
   onAuthStateChanged,
   User as FirebaseUser
@@ -286,6 +290,27 @@ export async function deleteBackupFromFirestore(userId: string, backupId: string
 export async function loginWithGooglePopup(): Promise<FirebaseUser> {
   const result = await signInWithPopup(auth, googleProvider);
   return result.user;
+}
+
+export async function loginWithEmail(email: string, password: string): Promise<FirebaseUser> {
+  const result = await signInWithEmailAndPassword(auth, email.trim(), password);
+  return result.user;
+}
+
+export async function registerWithEmail(email: string, password: string, displayName?: string): Promise<FirebaseUser> {
+  const result = await createUserWithEmailAndPassword(auth, email.trim(), password);
+  if (displayName && result.user) {
+    try {
+      await updateProfile(result.user, { displayName: displayName.trim() });
+    } catch {
+      // Non-blocking if displayName update fails
+    }
+  }
+  return result.user;
+}
+
+export async function resetPassword(email: string): Promise<void> {
+  await sendPasswordResetEmail(auth, email.trim());
 }
 
 export async function logoutFirebase(): Promise<void> {

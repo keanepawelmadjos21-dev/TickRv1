@@ -315,7 +315,6 @@ export const CloudSyncView: React.FC<CloudSyncViewProps> = ({
     { id: 'all' as const, label: 'All Settings', icon: Layers },
     { id: 'profile' as const, label: 'Profile Settings', icon: User },
     { id: 'cloud' as const, label: 'Cloud Synced & Storage', icon: Cloud },
-    { id: 'widgets' as const, label: 'Customize Widgets', icon: SlidersHorizontal },
     { id: 'appearance' as const, label: 'Appearance Scheme', icon: Sun },
     { id: 'assets' as const, label: 'Brand Assets & Media', icon: Folder },
   ];
@@ -389,6 +388,17 @@ export const CloudSyncView: React.FC<CloudSyncViewProps> = ({
             </div>
 
             <div className="flex items-center gap-2">
+              {onOpenWidgetModal && (
+                <button
+                  type="button"
+                  onClick={onOpenWidgetModal}
+                  id="btn-settings-profile-customize-widgets"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 shadow-2xs transition cursor-pointer"
+                >
+                  <SlidersHorizontal className="w-3.5 h-3.5" />
+                  <span>Customize Widgets</span>
+                </button>
+              )}
               {onOpenProfileModal && (
                 <button
                   type="button"
@@ -604,6 +614,22 @@ export const CloudSyncView: React.FC<CloudSyncViewProps> = ({
                     <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">
                       {account.role || 'Senior Software Engineer'}
                     </span>
+                    {fbUser ? (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+                        <CheckCircle2 className="w-3 h-3 text-emerald-500" />
+                        Signed In
+                      </span>
+                    ) : (
+                      onOpenProfileModal && (
+                        <button
+                          type="button"
+                          onClick={onOpenProfileModal}
+                          className="text-[10px] text-indigo-600 dark:text-indigo-400 hover:underline font-semibold cursor-pointer"
+                        >
+                          Sign In with Email
+                        </button>
+                      )
+                    )}
                   </div>
                   <p className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mt-0.5">
                     <Mail className="w-3 h-3 text-slate-400" />
@@ -644,6 +670,40 @@ export const CloudSyncView: React.FC<CloudSyncViewProps> = ({
               </div>
             </div>
           )}
+
+          {/* Customize Dashboard Widgets Bar directly under Profile Menu */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 p-4 rounded-xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/80 transition-all">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/50 flex items-center justify-center flex-shrink-0">
+                <SlidersHorizontal className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                    Customize Dashboard Widgets
+                  </h4>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300">
+                    {widgets.filter(w => w.enabled).length} of {widgets.length} Active
+                  </span>
+                </div>
+                <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Click to open popup tab: choose card visibility, change full/half widths, and reorder dashboard widgets
+                </p>
+              </div>
+            </div>
+
+            {onOpenWidgetModal && (
+              <button
+                type="button"
+                onClick={onOpenWidgetModal}
+                id="btn-profile-card-customize-widgets"
+                className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-2xs hover:shadow-xs transition-all cursor-pointer whitespace-nowrap"
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+                <span>Customize Widgets</span>
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -1007,150 +1067,9 @@ export const CloudSyncView: React.FC<CloudSyncViewProps> = ({
         </div>
       )}
 
-      {/* 3. Customize Dashboard Widgets Section (Moved from top) */}
-      {(activeSection === 'all' || activeSection === 'widgets') && (
-        <div id="section-customize-widgets" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-indigo-100 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 flex items-center justify-center">
-                <SlidersHorizontal className="w-4 h-4" />
-              </div>
-              <div>
-                <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                  Dashboard Widgets Customization
-                </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Toggle visibility, switch between full and half width columns, and reorder dashboard widgets
-                </p>
-              </div>
-            </div>
 
-            <div className="flex items-center gap-2">
-              {onOpenWidgetModal && (
-                <button
-                  type="button"
-                  onClick={onOpenWidgetModal}
-                  id="btn-settings-open-widget-modal"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white shadow-2xs transition cursor-pointer"
-                >
-                  <LayoutGrid className="w-3.5 h-3.5" />
-                  <span>Launch Widget Modal</span>
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={handleResetWidgetsDefault}
-                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-medium border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition cursor-pointer"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Reset Defaults</span>
-              </button>
-            </div>
-          </div>
 
-          {/* Interactive Widget Items List */}
-          <div className="space-y-2.5">
-            {widgets.map((widget, index) => {
-              const isEnabled = widget.enabled;
-              const isFull = widget.width === 'full';
-
-              return (
-                <div
-                  key={widget.id}
-                  className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl border transition ${
-                    isEnabled
-                      ? 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/80'
-                      : 'bg-slate-50/20 dark:bg-slate-900/40 border-slate-100 dark:border-slate-800 opacity-60'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="flex items-center justify-center w-6 h-6 rounded-md bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold font-mono">
-                      {index + 1}
-                    </span>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white">
-                          {widget.title}
-                        </span>
-                        <span className={`inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-semibold ${
-                          isEnabled
-                            ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300'
-                            : 'bg-slate-200 dark:bg-slate-800 text-slate-500'
-                        }`}>
-                          {isEnabled ? 'Active' : 'Hidden'}
-                        </span>
-                        <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                          {isFull ? 'Full Width (1 Col)' : 'Half Width (2 Cols)'}
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-slate-400">
-                        Widget ID: <code className="font-mono">{widget.id}</code>
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Widget Controls */}
-                  <div className="flex items-center gap-1.5 self-end sm:self-auto">
-                    {/* Width toggle */}
-                    <button
-                      type="button"
-                      onClick={() => handleToggleWidth(widget.id)}
-                      className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition cursor-pointer ${
-                        isFull
-                          ? 'bg-purple-50 dark:bg-purple-950/50 border-purple-300 dark:border-purple-800 text-purple-700 dark:text-purple-300'
-                          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
-                      }`}
-                      title={isFull ? 'Click to make half width' : 'Click to make full width'}
-                    >
-                      {isFull ? <Square className="w-3.5 h-3.5" /> : <Columns2 className="w-3.5 h-3.5" />}
-                      <span className="text-[11px]">{isFull ? 'Full' : 'Half'}</span>
-                    </button>
-
-                    {/* Visibility Toggle */}
-                    <button
-                      type="button"
-                      onClick={() => handleToggleWidget(widget.id)}
-                      className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-medium border transition cursor-pointer ${
-                        isEnabled
-                          ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300'
-                          : 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-500'
-                      }`}
-                      title={isEnabled ? 'Hide widget on dashboard' : 'Show widget on dashboard'}
-                    >
-                      {isEnabled ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
-                      <span className="text-[11px]">{isEnabled ? 'Visible' : 'Hidden'}</span>
-                    </button>
-
-                    {/* Move Up */}
-                    <button
-                      type="button"
-                      disabled={index === 0}
-                      onClick={() => handleMoveWidget(index, 'up')}
-                      className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
-                      title="Move up"
-                    >
-                      <ArrowUp className="w-3.5 h-3.5" />
-                    </button>
-
-                    {/* Move Down */}
-                    <button
-                      type="button"
-                      disabled={index === widgets.length - 1}
-                      onClick={() => handleMoveWidget(index, 'down')}
-                      className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
-                      title="Move down"
-                    >
-                      <ArrowDown className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* 4. Appearance Theme Scheme Section */}
+      {/* 3. Appearance Theme Scheme Section */}
       {(activeSection === 'all' || activeSection === 'appearance') && onSetTheme && (
         <div id="section-theme-appearance" className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-4">
           <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 dark:border-slate-800">
